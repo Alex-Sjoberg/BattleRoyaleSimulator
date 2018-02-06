@@ -1,4 +1,5 @@
 var LivingPlayerList;
+var DeadPlayerList;
 var EncounterThreshold = 75;
 var LootThreshold = 30;
 
@@ -8,6 +9,7 @@ var RunSimulation = function(){
         RunGameTurn();
     }
     console.info("Winner Winner Chicken Dinner!\nCongratulations "+ LivingPlayerList[0].Name + "!")
+    DisplayEndgameStats();
 }
 
 var RunGameTurn = function(){
@@ -25,7 +27,7 @@ var RunGameTurn = function(){
     }
 
     for(var i = 0; i < possibleEncounterPairs.length; i++){
-        var encounterRoll = Math.floor(Math.random()*100)
+        var encounterRoll = Math.floor(Math.random()*100);
         var Player1 = possibleEncounterPairs[i].Player1;
         var Player2 = possibleEncounterPairs[i].Player2;
         if(encounterRoll > EncounterThreshold){
@@ -52,7 +54,7 @@ var ProcessEncounter = function(player1, player2){
     var player1FightRoll = player1.RollForFight();
     var player2FightRoll = player2.RollForFight();
 
-    if(player2FightRoll > player1FightRoll){
+    if(player2FightRoll > player1FightRoll){    
         winner = player2;
         loser = player1;
     }else{
@@ -61,17 +63,19 @@ var ProcessEncounter = function(player1, player2){
     }
 
     ProcessFightWinner(winner);
-    ProcessFightLoser(loser);
+    ProcessFightLoser(loser, winner);
 }
 
 var ProcessFightWinner = function(winningPlayer){
     winningPlayer.Power += 20; //TODO make this be based on dead player's power
+    winningPlayer.Kills += 1;
 }
 
-var ProcessFightLoser = function(losingPlayer){
+var ProcessFightLoser = function(losingPlayer, killedBy){
     var loserIndex = LivingPlayerList.indexOf(losingPlayer);
+    DeadPlayerList.push(losingPlayer);
     LivingPlayerList.splice(loserIndex, 1);
-    console.info(losingPlayer.Name + " is dead!\n Remaining Players:\n" + LivingPlayerList.map(player => " " + player.Name + " Power - " + player.Power))
+    console.info(losingPlayer.Name + " was killed by " + killedBy.Name + "!\n Remaining Players:\n" + LivingPlayerList.map(player => " " + player.Name + " Power - " + player.Power))
 }
 
 var ProcessPassiveLooting = function(lootingPlayer){
@@ -90,8 +94,9 @@ var Player = function(playerName){
     self = {
         Name : playerName,
         Power : 100,
+        Kills : 0,
         RollForFight : function(){
-            return Math.floor(Math.random) * self.Power;
+            return Math.floor(Math.random() * self.Power);
         }
     }
 
@@ -108,6 +113,14 @@ var InitPlayerList = function(){
     new Player("Patrick"),
     new Player("YaoZhingPing"),
 ];
+    DeadPlayerList = [];
+}
+
+var DisplayEndgameStats = function(){
+    console.info("\n-----Kills-----\n"+ LivingPlayerList[0].Name + " - " + LivingPlayerList[0].Kills);
+    for(var i = 0; i < DeadPlayerList.length; i++){
+        console.info(DeadPlayerList[i].Name + " - " + DeadPlayerList[i].Kills);
+    }    
 }
 
 InitPlayerList();
