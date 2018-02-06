@@ -1,6 +1,7 @@
 const player = require('./Player');
 
 var LivingPlayerList;
+var DeadPlayerList;
 var EncounterThreshold = 75;
 var LootThreshold = 30;
 
@@ -10,6 +11,7 @@ var RunSimulation = function(){
         RunGameTurn();
     }
     console.info("Winner Winner Chicken Dinner!\nCongratulations "+ LivingPlayerList[0].Name + "!")
+    DisplayEndgameStats();
 }
 
 var RunGameTurn = function(){
@@ -27,16 +29,16 @@ var RunGameTurn = function(){
     }
 
     for(var i = 0; i < possibleEncounterPairs.length; i++){
-        var encounterRoll = Math.floor(Math.random()*100)
-        var Player1 = possibleEncounterPairs[i].Player1;
-        var Player2 = possibleEncounterPairs[i].Player2;
+        var encounterRoll = Math.floor(Math.random()*100);
+        var player1 = possibleEncounterPairs[i].Player1;
+        var player2 = possibleEncounterPairs[i].Player2;
         if(encounterRoll > EncounterThreshold){
-            console.info(Player1.Name + " is fighting " + Player2.Name+ "!")
-            ProcessEncounter(Player1, Player2)
+            console.info(player1.Name + " is fighting " + player2.Name+ "!")
+            ProcessEncounter(player1, player2)
         }else{
             //Didn't fight. Loot environment
-            ProcessPassiveLooting(Player1)
-            ProcessPassiveLooting(Player2)
+            ProcessPassiveLooting(player1)
+            ProcessPassiveLooting(player2)
         }
     }
 
@@ -54,7 +56,7 @@ var ProcessEncounter = function(player1, player2){
     var player1FightRoll = player1.RollForFight();
     var player2FightRoll = player2.RollForFight();
 
-    if(player2FightRoll > player1FightRoll){
+    if(player2FightRoll > player1FightRoll){    
         winner = player2;
         loser = player1;
     }else{
@@ -63,17 +65,19 @@ var ProcessEncounter = function(player1, player2){
     }
 
     ProcessFightWinner(winner);
-    ProcessFightLoser(loser);
+    ProcessFightLoser(loser, winner);
 }
 
 var ProcessFightWinner = function(winningPlayer){
     winningPlayer.Power += 20; //TODO make this be based on dead player's power
+    winningPlayer.Kills += 1;
 }
 
-var ProcessFightLoser = function(losingPlayer){
+var ProcessFightLoser = function(losingPlayer, killedBy){
     var loserIndex = LivingPlayerList.indexOf(losingPlayer);
+    DeadPlayerList.push(losingPlayer);
     LivingPlayerList.splice(loserIndex, 1);
-    console.info(losingPlayer.Name + " is dead!\n Remaining Players:\n" + LivingPlayerList.map(player => " " + player.Name + " Power - " + player.Power))
+    console.info(losingPlayer.Name + " was killed by " + killedBy.Name + "!\n Remaining Players:\n" + LivingPlayerList.map(player => " " + player.Name + " Power - " + player.Power))
 }
 
 var ProcessPassiveLooting = function(lootingPlayer){
@@ -86,8 +90,6 @@ var ProcessPassiveLooting = function(lootingPlayer){
 
 }
 
-
-
 var InitPlayerList = function(){
     LivingPlayerList = [
     new player.Player("Alex"),
@@ -97,6 +99,14 @@ var InitPlayerList = function(){
     new player.Player("Patrick"),
     new player.Player("YaoZhingPing"),
 ];
+    DeadPlayerList = [];
+}
+
+var DisplayEndgameStats = function(){
+    console.info("\n-----Kills-----\n"+ LivingPlayerList[0].Name + " - " + LivingPlayerList[0].Kills);
+    for(var i = 0; i < DeadPlayerList.length; i++){
+        console.info(DeadPlayerList[i].Name + " - " + DeadPlayerList[i].Kills);
+    }    
 }
 
 InitPlayerList();
