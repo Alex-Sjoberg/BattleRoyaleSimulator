@@ -1,3 +1,5 @@
+const player = require('./Player');
+
 var LivingPlayerList;
 var EncounterThreshold = 75;
 var LootThreshold = 30;
@@ -84,29 +86,16 @@ var ProcessPassiveLooting = function(lootingPlayer){
 
 }
 
-var Player = function(playerName){
-    var self = this;
 
-    self = {
-        Name : playerName,
-        Power : 100,
-        RollForFight : function(){
-            return Math.floor(Math.random) * self.Power;
-        }
-    }
-
-
-    return self;
-}
 
 var InitPlayerList = function(){
     LivingPlayerList = [
-    new Player("Alex"),
-    new Player("Adam"),
-    new Player("Dave"),
-    new Player("Paul"),
-    new Player("Patrick"),
-    new Player("YaoZhingPing"),
+    new player.Player("Alex"),
+    new player.Player("Adam"),
+    new player.Player("Dave"),
+    new player.Player("Paul"),
+    new player.Player("Patrick"),
+    new player.Player("YaoZhingPing"),
 ];
 }
 
