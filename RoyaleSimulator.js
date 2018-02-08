@@ -1,7 +1,7 @@
 const player = require('./Player');
 
 //Combat Constants
-const ENCOUNTER_THRESHOLD = 75;
+const ENCOUNTER_THRESHOLD = 85;
 const LIMB = 60;
 const BODY = 85;
 const HEAD = 100;
@@ -13,9 +13,9 @@ const WEAPON = 50;          //30% chance weapon
 const VEST = 80;            //10% chance vest
 const HELMET = 90;          //10% chance weapons
 
+//Loot Quality Constants
 const LEVEL_THREE = 95;     //5% chance Level 3
 const LEVEL_TWO = 75        //20% chance level 2
-
 const QUALITY_TEXT = ["worthless", "medicore", "nice", "fantastic"];
 
 //Players
@@ -90,8 +90,8 @@ var ProcessEncounter = function (player1, player2) {
         }
     }
 
-    winner.Kills += 1; 
     ProcessFightLoser(loser, winner);
+    DisplayRemainingPlayers();
     ProcessWinnerLootingLoser(winner, loser);
     winner.TakeMeds();
 }
@@ -99,14 +99,22 @@ var ProcessEncounter = function (player1, player2) {
 var ProcessCombatRoll = function (shootingPlayer, fightRoll, targetPlayer) {
     if (fightRoll > HEAD) {
         targetPlayer.ProcessHeadshot();
-        console.info(" " + shootingPlayer.Name + " shot " + targetPlayer.Name + " in the head!");
+        console.info(shootingPlayer.Name + " shot " + targetPlayer.Name + " in the head!");
     } else if (fightRoll > BODY) {
         targetPlayer.ProcessBodyshot();
-        console.info(" " + shootingPlayer.Name + " shot " + targetPlayer.Name + " in the body!");
+        console.info(shootingPlayer.Name + " shot " + targetPlayer.Name + " in the body!");
     } else if (fightRoll > LIMB) {
         targetPlayer.ProcessLimbshot();
-        console.info(" " + shootingPlayer.Name + " shot " + targetPlayer.Name + " in the limbs!");
+        console.info(shootingPlayer.Name + " shot " + targetPlayer.Name + " in the limbs!");
     }
+}
+
+var ProcessFightLoser = function (losingPlayer, winningPlayer) {
+    var loserIndex = LivingPlayerList.indexOf(losingPlayer);
+    DeadPlayerList.push(losingPlayer);
+    LivingPlayerList.splice(loserIndex, 1);
+    winningPlayer.Kills += 1; 
+    console.info(losingPlayer.Name + " was killed by " + winningPlayer.Name + "!");
 }
 
 var ProcessWinnerLootingLoser = function (winningPlayer, losingPlayer) {
@@ -115,14 +123,6 @@ var ProcessWinnerLootingLoser = function (winningPlayer, losingPlayer) {
     winningPlayer.UpgradeVest(losingPlayer.VestLevel);
     winningPlayer.Power = Math.max(winningPlayer.Power, losingPlayer.Power);
     winningPlayer.Meds += losingPlayer.Meds;
-}
-
-var ProcessFightLoser = function (losingPlayer, killedBy) {
-    var loserIndex = LivingPlayerList.indexOf(losingPlayer);
-    DeadPlayerList.push(losingPlayer);
-    LivingPlayerList.splice(loserIndex, 1);
-    console.info(losingPlayer.Name + " was killed by " + killedBy.Name + "!");
-    console.info("Remaining Players:" + LivingPlayerList.map(player => "\n " + player.Name + " - Health:" + player.Health + " Power:" + player.Power + " Meds:" + player.Meds));
 }
 
 var ProcessPassiveLooting = function (lootingPlayer) {
@@ -170,8 +170,13 @@ var InitPlayerList = function () {
     DeadPlayerList = [];
 }
 
+var DisplayRemainingPlayers = function () {
+    console.info("\n--- Remaining Players ---" + LivingPlayerList.map(player => "\n" + player.Name + " - Health:" + player.Health + " Power:" + player.Power + " Helmet:" + player.HelmetLevel + " Vest:" + player.VestLevel + " Meds:" + player.Meds));
+    console.info("-------------------------\n");
+}
+
 var DisplayEndgameStats = function () {
-    console.info("\n-----Kills-----\n" + LivingPlayerList[0].Name + " - " + LivingPlayerList[0].Kills);
+    console.info("\n--- Kills ---\n" + LivingPlayerList[0].Name + " - " + LivingPlayerList[0].Kills);
     for (var i = 0; i < DeadPlayerList.length; i++) {
         console.info(DeadPlayerList[i].Name + " - " + DeadPlayerList[i].Kills);
     }
